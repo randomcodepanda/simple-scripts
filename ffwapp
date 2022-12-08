@@ -1,0 +1,18 @@
+#!/bin/bash
+# script to convert movies to h264 baseline so they can be shared on whatsapp
+# TODO Improve error checking
+
+clear
+echo "Default values in brackets if left in blank"
+
+for file in "$@" ; do
+    [[ -d "$file" ]] && continue
+    echo "Filename:$file"
+    read -p "CRF[29]:" crf
+    read -p "Resolution[original]:" res
+    # original resolution if the value is left in blank
+    [[ -z "$res" ]] && { ffmpeg -v quiet -stats -i "${file}" -c:v libx264 -preset slow -crf "${crf:=29}" -profile:v baseline -level 3.0 -pix_fmt yuv420p -c:a aac "crf_${crf:=29}_${file/%.*/.mp4}" ; echo "File done!" ; continue ;}
+    # custom input resolution
+    ffmpeg -v quiet -stats -i "${file}" -c:v libx264 -preset slow -crf "${crf:=29}" -profile:v baseline -level 3.0 -pix_fmt yuv420p -vf scale=-2:"$res" -c:a aac "crf_${crf:=29}_${res}P_${file/%.*/.mp4}" && echo "File done!"
+done
+
